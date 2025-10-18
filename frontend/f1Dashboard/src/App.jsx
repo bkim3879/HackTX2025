@@ -1,4 +1,5 @@
 import React from 'react';
+import TelemetryGraph from './components/TelemetryGraph';
 
 const TopNavigationBar = () => (
   <div className="bg-gray-900 text-white p-4 flex justify-between items-center border-b border-gray-700">
@@ -50,16 +51,6 @@ const RaceStatusPanel = () => (
             <div>Tire Wear: <span className="font-mono text-red-500">68%</span></div>
             <div>Fuel: <span className="font-mono text-green-500">45kg</span></div>
             <div>Speed: <span className="font-mono">198 KPH</span></div>
-        </div>
-    </div>
-);
-
-const TelemetryGraph = () => (
-    <div className="bg-gray-900 p-4 rounded-xl shadow-lg border border-gray-700 col-span-2">
-        <h3 className="font-bold mb-4 text-white">LIVE TELEMETRY</h3>
-        <div className="h-48 bg-gray-800 rounded-lg flex items-center justify-center text-gray-500">
-            {/* Placeholder for graph */}
-            Line chart showing Speed, Throttle, Brake
         </div>
     </div>
 );
