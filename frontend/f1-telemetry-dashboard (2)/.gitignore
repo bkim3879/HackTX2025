@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+#DS_Store (mac specific file that stores folder attributes)
+.DS_Store
