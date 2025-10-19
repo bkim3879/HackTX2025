@@ -40,26 +40,18 @@ const App: React.FC = () => {
         const apiKey = import.meta.env.VITE_GOOGLE_GENAI_KEY as string | undefined;
         if (!apiKey) {
             console.error("Missing VITE_GOOGLE_GENAI_KEY environment variable.");
-            setAiError("AI assistant unavailable: API key missing.");
             return;
         }
 
-        try {
-            const ai = new GoogleGenAI({ apiKey });
-            const systemInstruction =
-                "You are an expert F1 race strategist AI assistant. Analyze the provided telemetry and prediction data to answer user questions concisely. Focus on actionable insights. The user is a race engineer.";
+        const ai = new GoogleGenAI({ apiKey });
+        const systemInstruction = "You are an expert F1 race strategist AI assistant. Analyze the provided telemetry and prediction data to answer user questions concisely. Focus on actionable insights. The user is a race engineer.";
 
-            (Object.keys(chatRef.current) as DriverId[]).forEach((id) => {
-                chatRef.current[id] = ai.chats.create({
-                    model: 'gemini-2.5-flash',
-                    config: { systemInstruction },
-                });
+        (Object.keys(chatRef.current) as DriverId[]).forEach(id => {
+            chatRef.current[id] = ai.chats.create({
+                model: 'gemini-2.5-flash',
+                config: { systemInstruction },
             });
-            setAiError(null);
-        } catch (error) {
-            console.error("Failed to initialize GenAI client:", error);
-            setAiError("AI assistant is unavailable. Check API credentials.");
-        }
+        });
     }, []);
 
 
