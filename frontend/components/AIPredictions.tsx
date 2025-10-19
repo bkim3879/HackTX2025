@@ -231,20 +231,20 @@ const AIPredictions: React.FC<AIPredictionsProps> = ({ predictions, telemetry, p
         <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(0,520px)] gap-4 xl:gap-6">
             <div className="space-y-4">
                 <DashboardPanel title={`Optimal Strategy - Lap ${lap}`} className="xl:py-2">
-                    <div className="space-y-5">
-                        <div className="rounded-lg border border-cyan-400/60 bg-cyan-500/15 px-5 py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between shadow-lg shadow-cyan-500/10">
+                    <div className="space-y-4">
+                        <div className="rounded-lg border border-cyan-400/60 bg-cyan-500/15 px-4 py-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between shadow-lg shadow-cyan-500/10 flex-shrink-0 min-h-[120px] md:min-h-[110px]">
                             <div>
                                 <p className="text-[0.65rem] uppercase tracking-wider text-cyan-100/70">Priority Strategy</p>
-                                <p className="text-3xl font-semibold text-cyan-100">{bestAction.replace(/_/g, ' ')}</p>
+                                <p className="text-2xl font-semibold text-cyan-100">{bestAction.replace(/_/g, ' ')}</p>
                             </div>
-                            <div className="flex items-center gap-8">
+                            <div className="flex items-center gap-6">
                                 <div className="text-right">
                                     <p className="text-[0.65rem] uppercase tracking-wider text-gray-300">Expected Gain</p>
-                                    <p className="font-mono text-3xl font-bold text-green-300">{expectedTimeGain.toFixed(2)}s</p>
+                                    <p className="font-mono text-2xl font-bold text-green-300">{expectedTimeGain.toFixed(2)}s</p>
                                 </div>
                                 <div className="text-right">
                                     <p className="text-[0.65rem] uppercase tracking-wider text-gray-300">Confidence</p>
-                                    <p className="font-mono text-3xl font-bold">{Math.round(confidence * 100)}%</p>
+                                    <p className="font-mono text-2xl font-bold">{Math.round(confidence * 100)}%</p>
                                 </div>
                             </div>
                         </div>
@@ -275,35 +275,35 @@ const AIPredictions: React.FC<AIPredictionsProps> = ({ predictions, telemetry, p
                 </DashboardPanel>
 
                 <DashboardPanel title="Predictive Analytics">
-                    <div className="space-y-3">
-                        <div className="rounded-lg border border-cyan-400/40 bg-cyan-500/10 px-4 py-3">
+                    <div className="space-y-1">
+                        <div className="rounded-lg border border-cyan-400/40 bg-cyan-500/10 px-3 py-1.5">
                             <p className="text-[0.65rem] uppercase tracking-wider text-cyan-100/70">Predicted Lap Time</p>
-                            <p className="font-mono text-3xl font-semibold text-white">{predictedLapTime.toFixed(2)}s</p>
+                            <p className="font-mono text-xl font-semibold text-white">{predictedLapTime.toFixed(2)}s</p>
                             <p className="text-xs text-cyan-100/70 mt-1">Model target for next lap</p>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                            <div className="rounded-md border border-white/10 bg-white/5 px-3 py-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-1 text-xs">
+                            <div className="rounded-md border border-white/10 bg-white/5 px-3 py-1.5">
                                 <p className="text-[0.65rem] uppercase tracking-wider text-gray-400">Pace Variance</p>
-                                <p className="font-mono text-lg text-white">±{paceVariance.toFixed(2)}s</p>
+                                <p className="font-mono text-base text-white">±{paceVariance.toFixed(2)}s</p>
                                 <p className="text-[0.65rem] text-gray-500">Performance spread</p>
                             </div>
-                            <div className="rounded-md border border-white/10 bg-white/5 px-3 py-2">
+                            <div className="rounded-md border border-white/10 bg-white/5 px-3 py-1.5">
                                 <p className="text-[0.65rem] uppercase tracking-wider text-gray-400">Tire Degradation</p>
-                                <p className="font-mono text-lg text-white">{degradationSlope.toFixed(2)} s/lap</p>
+                                <p className="font-mono text-base text-white">{degradationSlope.toFixed(2)} s/lap</p>
                                 <p className="text-[0.65rem] text-gray-500">Projected loss per lap</p>
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                            <div className="rounded-md border border-white/10 bg-white/5 px-3 py-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-1 text-xs">
+                            <div className="rounded-md border border-white/10 bg-white/5 px-3 py-1.5">
                                 <p className="text-[0.65rem] uppercase tracking-wider text-gray-400">Rain Probability</p>
-                                <p className="font-mono text-lg text-white">{(eventProbabilities.rainNext3 * 100).toFixed(0)}%</p>
+                                <p className="font-mono text-base text-white">{(eventProbabilities.rainNext3 * 100).toFixed(0)}%</p>
                                 <p className="text-[0.65rem] text-gray-500">
                                     {eventProbabilities.rainLapEstimate ? `est. Lap ${eventProbabilities.rainLapEstimate}` : 'next 3 laps'}
                                 </p>
                             </div>
-                            <div className="rounded-md border border-white/10 bg-white/5 px-3 py-2">
+                            <div className="rounded-md border border-white/10 bg-white/5 px-3 py-1.5">
                                 <p className="text-[0.65rem] uppercase tracking-wider text-gray-400">Safety Car Prob.</p>
-                                <p className="font-mono text-lg text-white">{(eventProbabilities.safetyCarNext3 * 100).toFixed(0)}%</p>
+                                <p className="font-mono text-base text-white">{(eventProbabilities.safetyCarNext3 * 100).toFixed(0)}%</p>
                                 <p className="text-[0.65rem] text-gray-500">
                                     {eventProbabilities.safetyCarLapEstimate ? `est. Lap ${eventProbabilities.safetyCarLapEstimate}` : 'next 3 laps'}
                                 </p>
