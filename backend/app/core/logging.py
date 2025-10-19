@@ -45,13 +45,16 @@ def configure_logging(level: int = logging.INFO) -> None:
     root_logger.addHandler(handler)
 
 
-def _fast_serializer(event_dict: dict[str, Any]) -> str:
+def _fast_serializer(event_dict: dict[str, Any], **kwargs: Any) -> str:
     """Serialize log events via orjson when available."""
+    default = kwargs.get("default")
     try:
         import orjson
 
+        if default is not None:
+            return orjson.dumps(event_dict, default=default).decode()
         return orjson.dumps(event_dict).decode()
     except ImportError:  # pragma: no cover - fallback path
         import json
 
-        return json.dumps(event_dict)
+        return json.dumps(event_dict, default=default)

@@ -107,6 +107,16 @@ class DecisionLogEntry(BaseModel):
     explain: dict[str, float | int | str | list[str]] | None = None
 
 
+class FastF1ImportRequest(BaseModel):
+    year: int
+    event_name: str = Field(alias="eventName")
+    session_code: str = Field(alias="sessionCode")
+    driver_id: str = Field(alias="driverId")
+    race_id: str | None = Field(default=None, alias="raceId")
+
+    model_config = {"populate_by_name": True}
+
+
 class HealthResponse(BaseModel):
     status: str
     redis: str | None = None

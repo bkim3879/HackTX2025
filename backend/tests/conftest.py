@@ -9,7 +9,7 @@ from typing import AsyncGenerator
 import pytest
 import pytest_asyncio
 from fakeredis.aioredis import FakeRedis
-from httpx import ASGITransport, AsyncClient
+from httpx import AsyncClient
 
 from app.api.dependencies import redis_dependency
 from app.core.config import get_settings
@@ -42,6 +42,7 @@ async def app_fixture(tmp_path, monkeypatch) -> AsyncGenerator:
 
 @pytest_asyncio.fixture
 async def async_client(app_fixture) -> AsyncIterator[AsyncClient]:
-    transport = ASGITransport(app=app_fixture, lifespan="on")
-    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
-        yield client
+    async with app_fixture.router.lifespan_context(app_fixture):
+        async with AsyncClient(app=app_fixture, base_url="http://testserver") as client:
+            client.app = app_fixture  # type: ignore[attr-defined]
+            yield client
