@@ -3,8 +3,6 @@ import { TelemetryData, AdvancedAIPredictionsData, SystemAlert } from '../types'
 import DashboardPanel from './DashboardPanel';
 import DataPoint from './DataPoint';
 import LineGraph from './LineGraph';
-import AlertIcon from './AlertIcon';
-
 
 interface TelemetryGridProps {
   telemetry: TelemetryData;
@@ -58,24 +56,13 @@ const TelemetryGrid: React.FC<TelemetryGridProps> = ({ telemetry, predictions, a
         </div>
       </DashboardPanel>
 
-      <DashboardPanel title="System Alerts">
-        {alerts.length > 0 ? (
-            <div className="space-y-3 overflow-y-auto max-h-40 pr-2 custom-scrollbar">
-                {alerts.map((alert) => (
-                    <div key={alert.id} className="flex items-start gap-3 text-xs">
-                        <AlertIcon level={alert.level} />
-                        <div className="flex-1">
-                            <p className="font-semibold">{alert.message}</p>
-                            <p className="text-gray-400">{alert.timestamp}</p>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        ) : (
-            <div className="flex-grow flex items-center justify-center">
-                <p className="text-sm text-gray-400">All systems nominal</p>
-            </div>
-        )}
+      <DashboardPanel title="Aero / Suspension">
+        <div className="space-y-2">
+            <DataPoint label="Ride Height" value={telemetry.suspension.rideHeight.toFixed(1)} unit="mm" />
+            <DataPoint label="Damper Travel" value={telemetry.suspension.damperTravel.toFixed(1)} unit="mm" />
+            <DataPoint label="Lateral Load" value={telemetry.suspension.lateralLoad.toFixed(2)} unit="G" />
+            <DataPoint label="Longitudinal Load" value={telemetry.suspension.longitudinalLoad.toFixed(2)} unit="G" />
+        </div>
       </DashboardPanel>
 
       <DashboardPanel title="Engine">
@@ -130,15 +117,6 @@ const TelemetryGrid: React.FC<TelemetryGridProps> = ({ telemetry, predictions, a
           <DataPoint label="Pad Temp" value={telemetry.brakes.padTemp} unit="°C" />
           <DataPoint label="Pressure" value={telemetry.brakes.brakePressure} unit="bar" />
           <DataPoint label="Bias" value={telemetry.brakes.brakeBias} />
-        </div>
-      </DashboardPanel>
-
-      <DashboardPanel title="Aero / Suspension">
-        <div className="space-y-2">
-            <DataPoint label="Ride Height" value={telemetry.suspension.rideHeight.toFixed(1)} unit="mm" />
-            <DataPoint label="Damper Travel" value={telemetry.suspension.damperTravel.toFixed(1)} unit="mm" />
-            <DataPoint label="Lateral Load" value={telemetry.suspension.lateralLoad.toFixed(2)} unit="G" />
-            <DataPoint label="Longitudinal Load" value={telemetry.suspension.longitudinalLoad.toFixed(2)} unit="G" />
         </div>
       </DashboardPanel>
     </div>

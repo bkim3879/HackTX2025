@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { TelemetryData, AdvancedAIPredictionsData, DriverId, SystemAlert, ChatMessage } from './types';
+import { TelemetryData, AdvancedAIPredictionsData, DriverId, SystemAlert, ChatMessage, PaceSample } from './types';
 import { generateTelemetryData, generateAIPredictionData } from './services/telemetryService';
 import Header from './components/Header';
 import TelemetryGrid from './components/TelemetryGrid';
@@ -19,13 +19,41 @@ const initialChatState: ChatState = {
     isLoading: false,
 };
 
+const parseLapTimeToSeconds = (lapTime: string): number | null => {
+    const [minutePart, secondPart] = lapTime.split(':');
+    if (!minutePart || !secondPart) return null;
+    const minutes = Number.parseInt(minutePart, 10);
+    const seconds = Number.parseFloat(secondPart.replace(/[^\d.]/g, ''));
+    if (Number.isNaN(minutes) || Number.isNaN(seconds)) {
+        return null;
+    }
+    return minutes * 60 + seconds;
+};
+
+const sanitizeGapValue = (gap: string): number | null => {
+    const numeric = Number.parseFloat(gap.replace(/[^\d.-]/g, ''));
+    return Number.isFinite(numeric) ? numeric : null;
+};
+
 const App: React.FC = () => {
     const [driverId, setDriverId] = useState<DriverId>('VER');
     const [telemetry, setTelemetry] = useState<TelemetryData | null>(null);
     const [predictions, setPredictions] = useState<AdvancedAIPredictionsData | null>(null);
     const [alerts, setAlerts] = useState<SystemAlert[]>([]);
-    const [activeTab, setActiveTab] = useState<'telemetry' | 'ai'>('telemetry');
+    const [activeTab, setActiveTab] = useState<'telemetry' | 'ai' | 'strategyLab'>('telemetry');
     const [aiError, setAiError] = useState<string | null>(null);
+    const [paceHistory, setPaceHistory] = useState<Record<DriverId, PaceSample[]>>({
+        VER: [],
+        HAM: [],
+        LEC: [],
+        NOR: [],
+    });
+    const [gapTrend, setGapTrend] = useState<Record<DriverId, { lastGap: number | null; perSectorChange: number | null }>>({
+        VER: { lastGap: null, perSectorChange: null },
+        HAM: { lastGap: null, perSectorChange: null },
+        LEC: { lastGap: null, perSectorChange: null },
+        NOR: { lastGap: null, perSectorChange: null },
+    });
     
     const [chatState, setChatState] = useState<Record<DriverId, ChatState>>({
         VER: { ...initialChatState, messages: [...initialChatState.messages] },
@@ -68,6 +96,37 @@ const App: React.FC = () => {
                 return [...newUniqueAlerts, ...prevAlerts].slice(0, 10);
             });
         }
+
+        const predicted = newPredictions.predictedLapTime;
+        const actualSecondsRaw = parseLapTimeToSeconds(newTelemetry.lapTiming.currentLapTime);
+        const baseActual = actualSecondsRaw ?? predicted;
+        const adjustedActual = baseActual >= predicted + 0.35 ? baseActual : predicted + 0.35;
+        const paceSample: PaceSample = {
+            actualLapSeconds: adjustedActual,
+            predictedLapSeconds: predicted,
+            timestamp: Date.now(),
+        };
+
+        setPaceHistory(prev => {
+            const existing = prev[driverId] ?? [];
+            const nextHistory = [...existing, paceSample].slice(-40);
+            return { ...prev, [driverId]: nextHistory };
+        });
+
+        const currentGap = sanitizeGapValue(newTelemetry.lapTiming.gapToAhead);
+        setGapTrend(prev => {
+            const previous = prev[driverId] ?? { lastGap: null, perSectorChange: null };
+            const perSectorChange = currentGap !== null && previous.lastGap !== null
+                ? (currentGap - previous.lastGap) / 3
+                : previous.perSectorChange;
+            return {
+                ...prev,
+                [driverId]: {
+                    lastGap: currentGap,
+                    perSectorChange: perSectorChange ?? null,
+                },
+            };
+        });
     }, [driverId]);
 
     useEffect(() => {
@@ -148,6 +207,8 @@ const App: React.FC = () => {
     }
 
     const currentDriverChatState = chatState[driverId];
+    const currentPaceHistory = paceHistory[driverId] ?? [];
+    const currentGapChangePerSector = gapTrend[driverId]?.perSectorChange ?? null;
 
     return (
         <div className="bg-[#0d1a26] text-white min-h-screen p-4 md:p-6 font-sans">
@@ -167,31 +228,33 @@ const App: React.FC = () => {
                     <button onClick={() => setActiveTab('ai')} className={`py-2 px-4 text-sm font-medium ${activeTab === 'ai' ? 'border-b-2 border-cyan-400 text-white' : 'text-gray-400'}`}>
                         AI Predictions
                     </button>
+                    <button onClick={() => setActiveTab('strategyLab')} className={`py-2 px-4 text-sm font-medium ${activeTab === 'strategyLab' ? 'border-b-2 border-cyan-400 text-white' : 'text-gray-400'}`}>
+                        Strategy Lab
+                    </button>
                 </div>
             </div>
 
             <main>
                 {activeTab === 'telemetry' && (
-                    <div className="grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                        <div className="lg:col-span-3 xl:col-span-4">
-                            <TelemetryGrid telemetry={telemetry} predictions={predictions} alerts={alerts} />
-                        </div>
-                        <div className="lg:col-span-1 xl:col-span-1 flex flex-col">
-                            <AIChatbot 
-                                messages={currentDriverChatState.messages}
-                                input={currentDriverChatState.input}
-                                isLoading={currentDriverChatState.isLoading}
-                                onInputChange={handleChatInputChange}
-                                onSendMessage={handleSendMessage}
-                            />
-                        </div>
+                    <div className="grid grid-cols-1">
+                        <TelemetryGrid telemetry={telemetry} predictions={predictions} alerts={alerts} />
                     </div>
                 )}
 
                 {activeTab === 'ai' && (
                     <div className="space-y-6">
-                       <AIPredictions predictions={predictions} />
-                       <AIChatbot
+                       <AIPredictions 
+                            predictions={predictions} 
+                            telemetry={telemetry} 
+                            paceHistory={currentPaceHistory}
+                            gapPerSectorChange={currentGapChangePerSector}
+                        />
+                    </div>
+                )}
+
+                {activeTab === 'strategyLab' && (
+                    <div className="mx-auto w-full max-w-[1200px] px-3 sm:px-6 lg:px-12">
+                        <AIChatbot
                             messages={currentDriverChatState.messages}
                             input={currentDriverChatState.input}
                             isLoading={currentDriverChatState.isLoading}
