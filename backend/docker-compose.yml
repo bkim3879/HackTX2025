@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    environment:
+      APP_ENV: ${APP_ENV:-dev}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      DATABASE_URL: ${DATABASE_URL:-sqlite+aiosqlite:///./rtsc.db}
+      MODEL_VERSION: ${MODEL_VERSION:-rtsc_1.0.3}
+      RISK_LAMBDA: ${RISK_LAMBDA:-0.3}
+      WS_RECO_FREQ_HZ: ${WS_RECO_FREQ_HZ:-1}
+      API_KEY: ${API_KEY:-change-me}
+      TELEMETRY_RATE_LIMIT: ${TELEMETRY_RATE_LIMIT:-120}
+      CORS_ALLOWLIST: ${CORS_ALLOWLIST:-http://localhost:3000}
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
