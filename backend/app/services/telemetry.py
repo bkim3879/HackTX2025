@@ -32,7 +32,7 @@ class TelemetryService:
             lap=tick.lap,
             stint_age=tick.stint_age,
             compound=tick.compound,
-            payload=tick.model_dump(by_alias=True),
+            payload=tick.model_dump(by_alias=True, mode="json"),
         )
         session.add(record)
         await session.commit()

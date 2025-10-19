@@ -6,6 +6,8 @@ from datetime import datetime, timezone
 
 import pytest
 
+from app.api.dependencies import fastf1_service_dependency
+
 
 def _tick_payload(lap: int = 1) -> dict[str, object]:
     return {
@@ -93,3 +95,39 @@ async def test_health_endpoint(async_client):
     assert body["status"] in {"ok", "degraded"}
     assert body["redis"]
     assert body["database"]
+
+
+@pytest.mark.asyncio
+async def test_fastf1_import_endpoint(async_client):
+    class StubFastF1:
+        def __init__(self):
+            self.called_with: dict[str, object] | None = None
+
+        async def ingest_session(self, **kwargs):
+            self.called_with = kwargs
+            return 2
+
+    stub = StubFastF1()
+    async_client.app.dependency_overrides[fastf1_service_dependency] = lambda: stub
+
+    headers = {"x-api-key": "test-key"}
+    payload = {
+        "year": 2023,
+        "eventName": "Bahrain",
+        "sessionCode": "R",
+        "driverId": "VER",
+        "raceId": "bahrain_2023",
+    }
+
+    response = await async_client.post(
+        "/api/v1/telemetry/import/fastf1", json=payload, headers=headers
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["imported"] == 2
+    assert stub.called_with is not None
+    assert stub.called_with["year"] == 2023
+    assert stub.called_with["driver_id"] == "VER"
+
+    async_client.app.dependency_overrides.pop(fastf1_service_dependency, None)
