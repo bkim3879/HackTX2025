@@ -4,7 +4,7 @@ import { getInitialData, updateTelemetryData } from './services/telemetryService
 import TelemetryGrid from './components/TelemetryGrid';
 import AIPredictions from './components/AIPredictions';
 import Header from './components/Header';
-
+import LiveChat from './components/LiveChat'
 // The new sample data provided by the user
 const sampleAIPredictionData: AdvancedAIPredictionsData = {
   "lap": 32,
@@ -32,6 +32,8 @@ const App: React.FC = () => {
   const [predictions, setPredictions] = useState<AdvancedAIPredictionsData | null>(null);
   const [isAILoading, setIsAILoading] = useState<boolean>(true);
   const [aiError, setAIError] = useState<string | null>(null);
+  const [liveChatError, setLiveChatError] = useState<string | null>(null);
+
   
   // Effect for live telemetry simulation
   useEffect(() => {
@@ -102,6 +104,7 @@ const App: React.FC = () => {
       <div className="my-4 flex space-x-2 p-1 bg-[#0d1a26] rounded-lg">
         <TabButton label="Live Telemetry" tabName="telemetry" />
         <TabButton label="AI Predictions" tabName="ai" />
+        <TabButton label= "Live Chat" tabName="liveChat" />
       </div>
 
       <div className={activeTab === 'telemetry' ? '' : 'hidden'}>
@@ -110,6 +113,12 @@ const App: React.FC = () => {
       <div className={activeTab === 'ai' ? '' : 'hidden'}>
         <AIPredictions predictions={predictions} isLoading={isAILoading} error={aiError} />
       </div>
+
+    {/* chatbot section  */}
+     <div className="min-h-screen flex items-center justify-center bg-black">
+      <LiveChat/>
+    </div>
+   
     </main>
   );
 };
