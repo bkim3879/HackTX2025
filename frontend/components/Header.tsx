@@ -1,16 +1,16 @@
 import React from 'react';
 import { DriverId } from '../types';
 import logoUrl from '../assets/Apex Racing Logo.png';
+import { DriverOption } from '../constants/drivers';
 
 interface HeaderProps {
   driverId: DriverId;
   lap: number;
   onDriverChange: (driverId: DriverId) => void;
+  driverOptions: DriverOption[];
 }
 
-const DRIVER_OPTIONS: DriverId[] = ['VER', 'HAM', 'LEC', 'NOR'];
-
-const Header: React.FC<HeaderProps> = ({ driverId, lap, onDriverChange }) => {
+const Header: React.FC<HeaderProps> = ({ driverId, lap, onDriverChange, driverOptions }) => {
   return (
     <header className="mb-4 flex justify-between items-center">
       <div className="flex items-center gap-3">
@@ -24,13 +24,17 @@ const Header: React.FC<HeaderProps> = ({ driverId, lap, onDriverChange }) => {
         <span className="font-mono text-sm text-gray-300 bg-white/5 rounded px-3 py-1">Lap {lap}</span>
         <div className="flex items-center space-x-2 text-sm">
            <label htmlFor="driver-select" className="text-sm font-medium text-gray-400">Driver:</label>
-           <select 
+          <select 
              id="driver-select"
              value={driverId}
              onChange={(e) => onDriverChange(e.target.value as DriverId)}
              className="bg-[#0d1a26] border border-gray-600 rounded-md px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
            >
-             {DRIVER_OPTIONS.map(id => <option key={id} value={id}>{id}</option>)}
+             {driverOptions.map(option => (
+               <option key={option.value} value={option.value}>
+                 {option.label}
+               </option>
+             ))}
            </select>
         </div>
       </div>

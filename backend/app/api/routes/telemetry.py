@@ -1,6 +1,6 @@
 "Telemetry ingestion endpoints."
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import (
@@ -62,3 +62,26 @@ async def import_fastf1_session(
         db_session=session,
     )
     return {"imported": count}
+
+@router.get(
+    "/latest",
+    response_model=TelemetryTick,
+)
+async def latest_telemetry_tick(
+    race_id: str = Query(..., alias="raceId"),
+    driver_id: str = Query(..., alias="driverId"),
+    session: AsyncSession = Depends(db_session_dependency),
+    telemetry_service: TelemetryService = Depends(telemetry_service_dependency),
+) -> TelemetryTick:
+    records = await telemetry_service.recent_ticks(
+        session=session,
+        race_id=race_id,
+        driver_id=driver_id,
+        limit=1,
+    )
+    if not records:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No telemetry available",
+        )
+    return TelemetryTick.model_validate(records[0].payload)
