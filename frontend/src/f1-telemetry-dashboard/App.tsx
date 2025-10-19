@@ -26,7 +26,7 @@ const sampleAIPredictionData: AdvancedAIPredictionsData = {
 
 const App: React.FC = () => {
   const [telemetryData, setTelemetryData] = useState<TelemetryData | null>(null);
-  const [activeTab, setActiveTab] = useState<'telemetry' | 'ai'>('telemetry');
+  const [activeTab, setActiveTab] = useState<'telemetry' | 'ai' | 'liveChat'>('telemetry');
 
   // State lifted up from AIPredictions, now using the advanced type
   const [predictions, setPredictions] = useState<AdvancedAIPredictionsData | null>(null);
@@ -72,7 +72,7 @@ const App: React.FC = () => {
 
   const TabButton: React.FC<{
     label: string;
-    tabName: 'telemetry' | 'ai';
+    tabName: 'telemetry' | 'ai' | 'liveChat';
   }> = ({ label, tabName }) => (
     <button
       onClick={() => setActiveTab(tabName)}
@@ -111,13 +111,15 @@ const App: React.FC = () => {
         <TelemetryGrid data={telemetryData} />
       </div>
       <div className={activeTab === 'ai' ? '' : 'hidden'}>
-        <AIPredictions predictions={predictions} isLoading={isAILoading} error={aiError} />
-      </div>
+          <AIPredictions predictions={predictions} isLoading={isAILoading} error={aiError} />
+        </div>
 
-    {/* chatbot section  */}
-     <div className="min-h-screen flex items-center justify-center bg-black">
-      <LiveChat/>
-    </div>
+        {/* Live Chat tab panel - only shown when activeTab === 'liveChat' */}
+        <div className={activeTab === 'liveChat' ? '' : 'hidden'}>
+          <div className="min-h-screen flex items-center justify-center bg-black">
+            <LiveChat />
+          </div>
+        </div>
    
     </main>
   );
