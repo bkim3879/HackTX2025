@@ -17,7 +17,7 @@ const formatTime = (seconds: number) => {
 // Helper for random variations
 const fluctuate = (base: number, variance: number) => base + (Math.random() - 0.5) * variance;
 
-let lapCounter = 1;
+let lapCounter = 20;
 let lastLapTime = 92.5;
 
 // Generates a single frame of telemetry data
@@ -108,30 +108,35 @@ export const generateAIPredictionData = (): AdvancedAIPredictionsData => {
   lapCounter++;
   lastLapTime -= fluctuate(0.1, 0.05); // Car is getting lighter
 
-  const candidates: AdvancedAIPredictionsData['strategyCandidates'] = [
-    { action: 'PIT_NOW', mu: -1.25, sigma: 0.8, conf: 0.82 },
-    { action: 'EXTEND_STINT', mu: 0.5, sigma: 1.2, conf: 0.65 },
-    { action: 'MAINTAIN_PACE', mu: 0.1, sigma: 0.5, conf: 0.95 },
-  ].sort((a,b) => b.mu - a.mu);
+  const rainProb = fluctuate(0.15, 0.1);
+  const scProb = fluctuate(0.06, 0.04);
 
-  const best = candidates.find(c => c.action === 'MAINTAIN_PACE')!;
+  const candidates: AdvancedAIPredictionsData['strategyCandidates'] = [
+    { action: 'pit in 2 soft', mu: fluctuate(-6.20, 0.5), sigma: fluctuate(1.90, 0.2), conf: fluctuate(0.82, 0.05) },
+    { action: 'pit now soft', mu: fluctuate(-5.80, 0.5), sigma: fluctuate(1.60, 0.2), conf: fluctuate(0.77, 0.05) },
+    { action: 'stay 3 laps', mu: fluctuate(2.80, 0.5), sigma: fluctuate(2.20, 0.2), conf: fluctuate(0.41, 0.1) },
+  ].sort((a,b) => a.mu - b.mu);
+
+  const best = candidates[0];
   
   return {
     lap: lapCounter,
     bestAction: best.action,
-    expectedTimeGain: -best.mu, // Invert mu for gain
+    expectedTimeGain: -best.mu,
     confidence: best.conf,
-    rationaleTags: ['OPTIMAL_TIRE_WINDOW', 'LOW_TRAFFIC_AHEAD', 'FUEL_TARGET_GREEN'],
-    predictedLapTime: fluctuate(lastLapTime, 0.2),
-    paceVariance: fluctuate(0.25, 0.1),
-    degradationSlope: fluctuate(0.08, 0.02),
+    rationaleTags: ['DEGRADATION UP', 'CLEAN AIR'],
+    predictedLapTime: fluctuate(95.80, 0.3),
+    paceVariance: fluctuate(0.21, 0.05),
+    degradationSlope: fluctuate(0.03, 0.01),
     eventProbabilities: {
-      rainNext3: fluctuate(0.05, 0.03),
-      safetyCarNext3: fluctuate(0.15, 0.05),
+      rainNext3: rainProb,
+      safetyCarNext3: scProb,
+      rainLapEstimate: rainProb > 0.12 ? lapCounter + Math.floor(fluctuate(5, 2)) : null,
+      safetyCarLapEstimate: scProb > 0.1 ? lapCounter + Math.floor(fluctuate(4, 2)) : null,
     },
     modelMeta: {
-      version: '3.1.4-beta',
-      updateTimeMs: Math.round(performance.now() - startTime + 25),
+      version: 'vrtsc_1.0.3',
+      updateTimeMs: Math.round(fluctuate(48, 10)),
     },
     strategyCandidates: candidates,
   };

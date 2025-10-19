@@ -1,3 +1,4 @@
+// FIX: Removed the import of types that are declared in this file, which was causing conflicts.
 export enum AlertLevel {
     Info = 'INFO',
     Warning = 'WARNING',
@@ -110,6 +111,8 @@ export interface AdvancedAIPredictionsData {
     eventProbabilities: {
         rainNext3: number;
         safetyCarNext3: number;
+        rainLapEstimate: number | null;
+        safetyCarLapEstimate: number | null;
     };
     modelMeta: {
         version: string;
