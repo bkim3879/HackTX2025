@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { TelemetryData, AdvancedAIPredictionsData } from './types';
-import { getInitialData, updateTelemetryData } from './services/telemetryService';
+import { getInitialData, updateTelemetryData, makeCsvIterator, setCsvIterator } from './services/telemetryService';
+import loadCsvRows from './services/csvLoader';
 import TelemetryGrid from './components/TelemetryGrid';
 import AIPredictions from './components/AIPredictions';
 import Header from './components/Header';
@@ -37,17 +38,35 @@ const App: React.FC = () => {
   
   // Effect for live telemetry simulation
   useEffect(() => {
-    const initialData = getInitialData();
-    setTelemetryData(initialData);
+    let mounted = true;
+    (async () => {
+      const initialData = getInitialData();
+      setTelemetryData(initialData);
 
-    const interval = setInterval(() => {
-      setTelemetryData(prevData => {
-        const newData = prevData ? updateTelemetryData(prevData) : getInitialData();
-        return newData;
-      });
-    }, 200);
+      // Load CSV rows and initialize iterator so telemetry updates come from CSV
+      try {
+        // path relative to this file's location; ../data/combined_race.csv resolves to frontend/src/data/combined_race.csv
+        const rows = await loadCsvRows('../data/combined_race.csv');
+        if (rows && rows.length > 0) {
+          const it = makeCsvIterator(rows);
+          setCsvIterator(it);
+        }
+      } catch (err) {
+        // If CSV fails to load, fall back to generated telemetry
+        console.warn('CSV load failed, falling back to simulated telemetry:', err);
+      }
 
-    return () => clearInterval(interval);
+      const interval = setInterval(() => {
+        setTelemetryData(prevData => {
+          const newData = prevData ? updateTelemetryData(prevData) : getInitialData();
+          return newData;
+        });
+      }, 200);
+
+      if (!mounted) clearInterval(interval);
+    })();
+
+    return () => { setCsvIterator(null); };
   }, []);
 
   // Effect for fetching AI predictions using the sample data
