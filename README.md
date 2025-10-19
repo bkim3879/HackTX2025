@@ -3,11 +3,22 @@
 ## Backend quick start
 
 1. `cd backend`
-2. `python3 -m venv .venv && source .venv/bin/activate`
-3. `pip install -r requirements.txt`
-4. `cp .env.example .env` and adjust values (update `API_KEY`, `REDIS_URL`, `FASTF1_CACHE_DIR`, etc.)
-5. Ensure Redis is running locally (`docker run --rm -p 6379:6379 redis:7-alpine`)
-6. Launch the API with `uvicorn app.main:app --reload --host 0.0.0.0 --port 8000`
+2. (Re)create the virtualenv:  
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   ```
+3. Install dependencies: `pip install -r requirements.txt`
+4. Seed configuration: `cp .env.example .env` then edit to set `API_KEY`, `REDIS_URL`, `FASTF1_CACHE_DIR`, etc.
+5. Start Redis locally (one-time shell):  
+   ```bash
+   docker run --rm -p 6379:6379 redis:7-alpine
+   ```
+   or use `docker-compose up` from `backend/` for a managed stack.
+6. Launch the API:  
+   ```bash
+   uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+   ```
 
 Interactive API docs: `http://localhost:8000/api/v1/docs`
 

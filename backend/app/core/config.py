@@ -3,7 +3,7 @@
 from functools import lru_cache
 from typing import Any, Literal
 
-from pydantic import Field, validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -33,13 +33,14 @@ class AppSettings(BaseSettings):
         default=None, alias="DECISION_LOG_PATH"
     )  # Allows overriding SQLite log path
     api_key: str | None = Field(default=None, alias="API_KEY")
-    cors_allow_origins: list[str] = Field(
+    cors_allow_origins: list[str] | str = Field(
         default_factory=lambda: ["http://localhost:3000"], alias="CORS_ALLOWLIST"
     )
     telemetry_rate_limit_per_min: int = Field(default=120, alias="TELEMETRY_RATE_LIMIT")
     test_seed: int | None = Field(default=None, alias="RTSC_TEST_SEED")
 
-    @validator("cors_allow_origins", pre=True)
+    @field_validator("cors_allow_origins", mode="before")
+    @classmethod
     def _split_origins(cls, value: Any) -> list[str]:
         if isinstance(value, str):
             return [item.strip() for item in value.split(",") if item.strip()]

@@ -25,6 +25,7 @@ const App: React.FC = () => {
     const [predictions, setPredictions] = useState<AdvancedAIPredictionsData | null>(null);
     const [alerts, setAlerts] = useState<SystemAlert[]>([]);
     const [activeTab, setActiveTab] = useState<'telemetry' | 'ai'>('telemetry');
+    const [aiError, setAiError] = useState<string | null>(null);
     
     const [chatState, setChatState] = useState<Record<DriverId, ChatState>>({
         VER: { ...initialChatState, messages: [...initialChatState.messages] },
@@ -36,15 +37,29 @@ const App: React.FC = () => {
     const chatRef = useRef<Record<DriverId, Chat | null>>({ VER: null, HAM: null, LEC: null, NOR: null });
 
     useEffect(() => {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-        const systemInstruction = "You are an expert F1 race strategist AI assistant. Analyze the provided telemetry and prediction data to answer user questions concisely. Focus on actionable insights. The user is a race engineer.";
-        
-        (Object.keys(chatRef.current) as DriverId[]).forEach(id => {
-            chatRef.current[id] = ai.chats.create({
-                model: 'gemini-2.5-flash',
-                config: { systemInstruction },
+        const apiKey = import.meta.env.VITE_GOOGLE_GENAI_KEY as string | undefined;
+        if (!apiKey) {
+            console.error("Missing VITE_GOOGLE_GENAI_KEY environment variable.");
+            setAiError("AI assistant unavailable: API key missing.");
+            return;
+        }
+
+        try {
+            const ai = new GoogleGenAI({ apiKey });
+            const systemInstruction =
+                "You are an expert F1 race strategist AI assistant. Analyze the provided telemetry and prediction data to answer user questions concisely. Focus on actionable insights. The user is a race engineer.";
+
+            (Object.keys(chatRef.current) as DriverId[]).forEach((id) => {
+                chatRef.current[id] = ai.chats.create({
+                    model: 'gemini-2.5-flash',
+                    config: { systemInstruction },
+                });
             });
-        });
+            setAiError(null);
+        } catch (error) {
+            console.error("Failed to initialize GenAI client:", error);
+            setAiError("AI assistant is unavailable. Check API credentials.");
+        }
     }, []);
 
 
@@ -87,6 +102,10 @@ const App: React.FC = () => {
         const userInput = currentChat.input;
 
         if (!userInput.trim() || currentChat.isLoading || !currentChatSession) return;
+        if (aiError) {
+            console.warn("AI send attempted while AI assistant unavailable.");
+            return;
+        }
 
         const userMessage: ChatMessage = { sender: 'user', text: userInput };
         
@@ -124,6 +143,7 @@ const App: React.FC = () => {
                     isLoading: false 
                 }
             }));
+            setAiError("AI assistant encountered an error. Please verify credentials.");
         }
     };
 
@@ -141,6 +161,12 @@ const App: React.FC = () => {
         <div className="bg-[#0d1a26] text-white min-h-screen p-4 md:p-6 font-sans">
             <Header driverId={driverId} lap={predictions.lap} onDriverChange={handleDriverChange} />
             
+            {aiError && (
+                <div className="mb-4 rounded border border-red-500 bg-red-900/40 px-4 py-3 text-sm text-red-100">
+                    {aiError}
+                </div>
+            )}
+
             <div className="mb-6">
                 <div className="flex space-x-2 border-b border-gray-700">
                     <button onClick={() => setActiveTab('telemetry')} className={`py-2 px-4 text-sm font-medium ${activeTab === 'telemetry' ? 'border-b-2 border-cyan-400 text-white' : 'text-gray-400'}`}>
