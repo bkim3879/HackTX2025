@@ -12,6 +12,7 @@ from app.core.config import AppSettings, get_settings
 from app.core.database import get_session
 from app.core.redis import get_redis
 from app.services.decision_engine import DecisionEngineService
+from app.services.fastf1_ingest import FastF1IngestService
 from app.services.monte_carlo import MonteCarloEvaluator
 from app.services.rate_limit import RateLimiter
 from app.services.recommendation_cache import RecommendationCache
@@ -68,3 +69,9 @@ async def monte_carlo_dependency(
     settings: AppSettings = Depends(settings_dependency),
 ) -> MonteCarloEvaluator:
     return MonteCarloEvaluator(settings)
+
+
+async def fastf1_service_dependency(
+    settings: AppSettings = Depends(settings_dependency),
+) -> FastF1IngestService:
+    return FastF1IngestService(settings)

@@ -24,6 +24,9 @@ class AppSettings(BaseSettings):
     ws_recommendation_freq_hz: int = Field(
         default=1, alias="WS_RECO_FREQ_HZ", ge=1, le=10
     )
+    fastf1_cache_dir: str = Field(
+        default="./data/fastf1-cache", alias="FASTF1_CACHE_DIR"
+    )
     telemetry_channel: str = "telemetry.updated"
     recommendation_channel: str = "recommendations.broadcast"
     decision_log_path: str | None = Field(

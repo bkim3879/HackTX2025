@@ -108,7 +108,7 @@ class DecisionEngineService:
         action_scores: list[ActionScore],
         latency_ms: int,
     ) -> None:
-        state_payload = tick.model_dump(by_alias=True)
+        state_payload = tick.model_dump(by_alias=True, mode="json")
         state_hash = hashlib.sha1(orjson.dumps(state_payload)).hexdigest()[:12]
         record = DecisionLogRecord(
             race_id=tick.race_id,
