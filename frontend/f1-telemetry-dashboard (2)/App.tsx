@@ -36,9 +36,15 @@ const App: React.FC = () => {
     const chatRef = useRef<Record<DriverId, Chat | null>>({ VER: null, HAM: null, LEC: null, NOR: null });
 
     useEffect(() => {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const apiKey = import.meta.env.VITE_GOOGLE_GENAI_KEY as string | undefined;
+        if (!apiKey) {
+            console.error("Missing VITE_GOOGLE_GENAI_KEY environment variable.");
+            return;
+        }
+
+        const ai = new GoogleGenAI({ apiKey });
         const systemInstruction = "You are an expert F1 race strategist AI assistant. Analyze the provided telemetry and prediction data to answer user questions concisely. Focus on actionable insights. The user is a race engineer.";
-        
+
         (Object.keys(chatRef.current) as DriverId[]).forEach(id => {
             chatRef.current[id] = ai.chats.create({
                 model: 'gemini-2.5-flash',
