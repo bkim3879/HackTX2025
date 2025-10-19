@@ -121,6 +121,12 @@ export interface AdvancedAIPredictionsData {
     strategyCandidates: StrategyCandidate[];
 }
 
+export interface PaceSample {
+    actualLapSeconds: number;
+    predictedLapSeconds: number;
+    timestamp: number;
+}
+
 export interface ChatMessage {
     sender: 'user' | 'ai';
     text: string;
